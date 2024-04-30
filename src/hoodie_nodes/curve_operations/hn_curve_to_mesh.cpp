@@ -196,7 +196,7 @@ HNCurveToMesh::PortType HNCurveToMesh::get_input_port_type(int p_port) const {
         case 0:
             return PortType::PORT_TYPE_CURVE;
         case 1:
-            return PortType::PORT_TYPE_GEOMETRY;
+            return PortType::PORT_TYPE_MESH;
         case 2:
             return PortType::PORT_TYPE_BOOLEAN;
         default:
@@ -222,7 +222,7 @@ int HNCurveToMesh::get_output_port_count() const {
 }
 
 HNCurveToMesh::PortType HNCurveToMesh::get_output_port_type(int p_port) const {
-    return PortType::PORT_TYPE_GEOMETRY;
+    return PortType::PORT_TYPE_MESH;
 }
 
 String HNCurveToMesh::get_output_port_name(int p_port) const {

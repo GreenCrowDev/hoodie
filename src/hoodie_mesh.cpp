@@ -655,11 +655,11 @@ bool HoodieMesh::is_port_types_compatible(int p_a, int p_b) const {
     HoodieNode::PortType a = (HoodieNode::PortType)p_a;
     HoodieNode::PortType b = (HoodieNode::PortType)p_b;
 
-    if (a == HoodieNode::PortType::PORT_TYPE_CURVE && b == HoodieNode::PortType::PORT_TYPE_GEOMETRY) {
+    if (a == HoodieNode::PortType::PORT_TYPE_CURVE && b == HoodieNode::PortType::PORT_TYPE_MESH) {
         UtilityFunctions::push_warning("Curve type and Geometry type are NOT compatible.");
     }
 
-    if (a == HoodieNode::PortType::PORT_TYPE_GEOMETRY && b == HoodieNode::PortType::PORT_TYPE_CURVE) {
+    if (a == HoodieNode::PortType::PORT_TYPE_MESH && b == HoodieNode::PortType::PORT_TYPE_CURVE) {
         UtilityFunctions::push_warning("Curve type and Geometry type are NOT compatible.");
     }
 

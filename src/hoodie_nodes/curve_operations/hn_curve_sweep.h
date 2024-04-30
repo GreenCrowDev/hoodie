@@ -1,23 +1,20 @@
-#ifndef HOODIE_HNCURVETOMESH_H
-#define HOODIE_HNCURVETOMESH_H
+#ifndef HOODIE_HNCURVESWEEP_H
+#define HOODIE_HNCURVESWEEP_H
 
 #include "hoodie_node.h"
 
 namespace godot
 {
 
-class HNCurveToMesh : public HoodieNode {
-    GDCLASS(HNCurveToMesh, HoodieNode)
+class HNCurveSweep : public HoodieNode {
+    GDCLASS(HNCurveSweep, HoodieNode)
 
 private:
     // Input
-    Array curve;
-    Array profile;
-    bool shape_is_closed;
     bool flip;
-    
+
     // Output
-    Array mesh;
+    Array out;
 
 public:
     void set_flip(const bool p_value);
@@ -53,4 +50,4 @@ public:
 } // namespace godot
 
 
-#endif // HOODIE_HNCURVETOMESH_H
+#endif // HOODIE_HNCURVESWEEP_H

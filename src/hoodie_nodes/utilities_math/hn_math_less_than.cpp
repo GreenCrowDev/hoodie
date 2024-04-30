@@ -1,9 +1,9 @@
-#include "hn_math_multiply.h"
+#include "hn_math_less_than.h"
 
 using namespace godot;
 
-void HNMathMultiply::_process(const Array &p_inputs) {
-    multiplied_arr.clear();
+void HNMathLessThan::_process(const Array &p_inputs) {
+    out.clear();
 
     if (p_inputs.size() == 0) {
         return;
@@ -20,22 +20,27 @@ void HNMathMultiply::_process(const Array &p_inputs) {
         fac_1.push_back(fac_1[fac_1.size() - 1]);
     }
 
+    TypedArray<bool> results;
+    results.resize(fac_0.size());
+
     for (int i = 0; i < fac_0.size(); i++) {
         const float a = (float)fac_0[i];
         const float b = (float)fac_1[i];
-        multiplied_arr.push_back(a * b);
+        results[i] = a < b;
     }
+
+    out.append_array(results);
 }
 
-String HNMathMultiply::get_caption() const {
-    return "Math Multiply";
+String HNMathLessThan::get_caption() const {
+    return "Math Less Than";
 }
 
-int HNMathMultiply::get_input_port_count() const {
+int HNMathLessThan::get_input_port_count() const {
     return 2;
 }
 
-HoodieNode::PortType HNMathMultiply::get_input_port_type(int p_port) const {
+HoodieNode::PortType HNMathLessThan::get_input_port_type(int p_port) const {
     switch (p_port) {
         case 0:
             return PortType::PORT_TYPE_SCALAR;
@@ -46,7 +51,7 @@ HoodieNode::PortType HNMathMultiply::get_input_port_type(int p_port) const {
     return PortType::PORT_TYPE_SCALAR;
 }
 
-String HNMathMultiply::get_input_port_name(int p_port) const {
+String HNMathLessThan::get_input_port_name(int p_port) const {
     switch (p_port) {
         case 0:
             return "Value";
@@ -57,22 +62,18 @@ String HNMathMultiply::get_input_port_name(int p_port) const {
     return "Value";
 }
 
-int HNMathMultiply::get_output_port_count() const {
+int HNMathLessThan::get_output_port_count() const {
     return 1;
 }
 
-HoodieNode::PortType HNMathMultiply::get_output_port_type(int p_port) const {
-    return PortType::PORT_TYPE_SCALAR;
+HoodieNode::PortType HNMathLessThan::get_output_port_type(int p_port) const {
+    return PortType::PORT_TYPE_BOOLEAN;
 }
 
-String HNMathMultiply::get_output_port_name(int p_port) const {
-    return "Value";
+String HNMathLessThan::get_output_port_name(int p_port) const {
+    return "Bool";
 }
 
-const Variant HNMathMultiply::get_output(int p_port) const {
-    if (p_port == 0) {
-        return Variant(multiplied_arr);
-    }
-
-    return Variant();
+const Variant HNMathLessThan::get_output(int p_port) const {
+    return Variant(out);
 }

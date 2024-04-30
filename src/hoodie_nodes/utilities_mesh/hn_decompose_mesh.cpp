@@ -51,7 +51,7 @@ int HNDecomposeMesh::get_input_port_count() const {
 }
 
 HNDecomposeMesh::PortType HNDecomposeMesh::get_input_port_type(int p_port) const {
-    return PortType::PORT_TYPE_GEOMETRY;
+    return PortType::PORT_TYPE_MESH;
 }
 
 String HNDecomposeMesh::get_input_port_name(int p_port) const {

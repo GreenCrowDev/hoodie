@@ -96,7 +96,7 @@ int HNMeshLine::get_output_port_count() const {
 }
 
 HNMeshLine::PortType HNMeshLine::get_output_port_type(int p_port) const {
-    return PortType::PORT_TYPE_GEOMETRY;
+    return PortType::PORT_TYPE_MESH;
 }
 
 String HNMeshLine::get_output_port_name(int p_port) const {

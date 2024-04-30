@@ -92,6 +92,7 @@ void HoodieGraphPlugin::add_node(id_t p_id, bool p_just_update) {
 		Color(0.00, 0.00, 0.00), // array
 		Color(0.00, 0.84, 0.64), // curve
 		Color(1.0, 1.0, 1.0), // data
+		Color(1.0, 1.0, 0.0), // hgeo
 		Color(1.0, 1.0, 0.0), // max
 	};
 
@@ -465,6 +466,9 @@ HoodieControl::HoodieControl() {
     // CURVE
 
     add_options.push_back(AddOption("Points Curvature", "Curve/Analysis", "HNPointsCurvature"));
+    add_options.push_back(AddOption("Points Distance", "Curve/Analysis", "HNPointsDistance"));
+
+    add_options.push_back(AddOption("Connect Points", "Curve/Operations", "HNConnectPoints"));
     add_options.push_back(AddOption("Curve to Mesh", "Curve/Operations", "HNCurveToMesh"));
     add_options.push_back(AddOption("Curve to Points", "Curve/Operations", "HNCurveToPoints"));
 
@@ -479,8 +483,12 @@ HoodieControl::HoodieControl() {
     // UTILITIES
   
     add_options.push_back(AddOption("Repeat Data", "Utilities/Data", "HNRepeatData"));
+    add_options.push_back(AddOption("Shift Data", "Utilities/Data", "HNShiftData"));
+
+    add_options.push_back(AddOption("Compose Hoodie Geo", "Utilities/Hoodie Geo", "HNComposeHoodieGeo"));
 
     add_options.push_back(AddOption("Derivative", "Utilities/Math", "HNMathDerivative"));
+    add_options.push_back(AddOption("Less Than", "Utilities/Math", "HNMathLessThan"));
     add_options.push_back(AddOption("Multiply", "Utilities/Math", "HNMathMultiply"));
     add_options.push_back(AddOption("Noise Reduction", "Utilities/Math", "HNMathNoiseReduction"));
     add_options.push_back(AddOption("Sign", "Utilities/Math", "HNMathSign"));

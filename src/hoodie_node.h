@@ -6,6 +6,8 @@
 #include <godot_cpp/templates/vector.hpp>
 #include <godot_cpp/templates/hash_map.hpp>
 
+#include "hoodie_geo.h"
+
 namespace godot
 {
 
@@ -64,10 +66,11 @@ public:
 		PORT_TYPE_BOOLEAN,
         PORT_TYPE_COLOR,
         PORT_TYPE_STRING,
-        PORT_TYPE_GEOMETRY,
+        PORT_TYPE_MESH,
         PORT_TYPE_ARRAY,
         PORT_TYPE_CURVE,
         PORT_TYPE_DATA,
+        PORT_TYPE_HGEO,
         PORT_TYPE_MAX,
     };
 

@@ -7,6 +7,8 @@
 #include "hoodie_mesh.h"
 #include "hoodie_node.h"
 #include "hoodie_nodes/curve_analysis/hn_points_curvature.h"
+#include "hoodie_nodes/curve_analysis/hn_points_distance.h"
+#include "hoodie_nodes/curve_operations/hn_connect_points.h"
 #include "hoodie_nodes/curve_operations/hn_curve_to_mesh.h"
 #include "hoodie_nodes/curve_operations/hn_curve_to_points.h"
 #include "hoodie_nodes/geometry_operations/hn_transform_geometry.h"
@@ -20,7 +22,10 @@
 #include "hoodie_nodes/mesh_primitives/hn_mesh_line.h"
 #include "hoodie_nodes/mesh_primitives/hn_mesh_rect.h"
 #include "hoodie_nodes/utilities_data/hn_repeat_data.h"
+#include "hoodie_nodes/utilities_data/hn_shift_data.h"
+#include "hoodie_nodes/utilities_hgeo/hn_compose_hoodie_geo.h"
 #include "hoodie_nodes/utilities_math/hn_math_derivative.h"
+#include "hoodie_nodes/utilities_math/hn_math_less_than.h"
 #include "hoodie_nodes/utilities_math/hn_math_multiply.h"
 #include "hoodie_nodes/utilities_math/hn_math_noise_reduction.h"
 #include "hoodie_nodes/utilities_math/hn_math_sign.h"
@@ -47,6 +52,8 @@ void initialize_hoodie_module(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<HoodieMesh>();
 		ClassDB::register_abstract_class<HoodieNode>();
 		ClassDB::register_class<HNPointsCurvature>();
+		ClassDB::register_class<HNPointsDistance>();
+		ClassDB::register_class<HNConnectPoints>();
 		ClassDB::register_class<HNCurveToMesh>();
 		ClassDB::register_class<HNCurveToPoints>();
 		ClassDB::register_class<HNTransformGeometry>();
@@ -60,7 +67,10 @@ void initialize_hoodie_module(ModuleInitializationLevel p_level) {
 		ClassDB::register_class<HNMeshLine>();
 		ClassDB::register_class<HNMeshRect>();
 		ClassDB::register_class<HNRepeatData>();
+		ClassDB::register_class<HNShiftData>();
+		ClassDB::register_class<HNComposeHoodieGeo>();
 		ClassDB::register_class<HNMathDerivative>();
+		ClassDB::register_class<HNMathLessThan>();
 		ClassDB::register_class<HNMathMultiply>();
 		ClassDB::register_class<HNMathNoiseReduction>();
 		ClassDB::register_class<HNMathSign>();

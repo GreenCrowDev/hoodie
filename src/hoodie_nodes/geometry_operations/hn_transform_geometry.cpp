@@ -138,7 +138,7 @@ int HNTransformGeometry::get_input_port_count() const {
 HNTransformGeometry::PortType HNTransformGeometry::get_input_port_type(int p_port) const {
     switch (p_port) {
         case 0:
-            return PortType::PORT_TYPE_GEOMETRY;
+            return PortType::PORT_TYPE_MESH;
         case 1:
             return PortType::PORT_TYPE_VECTOR_3D;
         case 2:
@@ -170,7 +170,7 @@ int HNTransformGeometry::get_output_port_count() const {
 }
 
 HNTransformGeometry::PortType HNTransformGeometry::get_output_port_type(int p_port) const {
-    return PortType::PORT_TYPE_GEOMETRY;
+    return PortType::PORT_TYPE_MESH;
 }
 
 String HNTransformGeometry::get_output_port_name(int p_port) const {
