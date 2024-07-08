@@ -42,8 +42,10 @@ public:
     static Ref<HoodieData> create_reference(const PackedVector3Array &p_points, const Vector<Primitive> &p_primitives);
     static Ref<HoodieData> create_reference(const PackedVector3Array &p_points, const PackedInt32Array &p_vertices);
 
-    TypedArray<PackedVector3Array> pack_primitive_points() const;
+    Vector<PackedVector3Array> pack_primitive_points() const;
     void unpack_primitive_points(const TypedArray<PackedVector3Array> &p_array);
+
+    Vector<HashMap<String, Array>> pack_primitive_attributes() const;
 
     Array to_mesh() const;
 

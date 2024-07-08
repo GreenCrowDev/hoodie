@@ -48,6 +48,15 @@ public:
         PORT_TYPE_MAX,
     };
 
+    enum PortHint {
+        PORT_HINT_ITEM, // Iterate over each item separately (e.g. point).
+        PORT_HINT_LIST, // Iterate over the whole list as a single pack (e.g. curve composed by points).
+        PORT_HINT_HGEO_POINT, // Iterate over each point from a HoodieGeo (returns a Hoodiegeo with only one point and its attributes).
+        PORT_HINT_HGEO_PRIMITIVE, // Iterate over each primitive from a HoodieGeo
+        PORT_HINT_HGEO_ALL, // Pass the whole HoodieGeo object
+        PORT_HINT_OBJECT,
+    };
+
     enum ProcessStatus {
 		PENDING, // all nodes are cleared to this before we update our mesh
 		INPROGRESS, // a node gets this status when we are in the middle of updating it, helps detect cyclic relationships
@@ -80,10 +89,12 @@ public:
 
 	virtual int get_input_port_count() const;
 	virtual PortType get_input_port_type(int p_port) const;
+    virtual PortHint get_input_port_hint(int p_port) const;
 	virtual String get_input_port_name(int p_port) const;
 
     virtual int get_output_port_count() const;
 	virtual PortType get_output_port_type(int p_port) const;
+	virtual PortHint get_output_port_hint(int p_port) const;
 	virtual String get_output_port_name(int p_port) const;
 
     // If you want to implement properties for a node, remember that:
@@ -99,6 +110,8 @@ public:
 
     virtual Vector<StringName> get_editable_properties() const;
     virtual HashMap<StringName, String> get_editable_properties_names() const;
+
+    Array _package_inputs(const Array &p_inputs) const;
 
     const Variant get_output(int p_port) const;
     void set_output(int p_port, const Variant &p_data);
