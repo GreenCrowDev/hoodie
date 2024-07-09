@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://bu1bsnv4mphsj"]
+
+[ext_resource type="Script" path="res://util_scenes/car_sphere/car_sphere.gd" id="1_cthf0"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_qldxg"]
+radius = 0.2
+
+[sub_resource type="SphereMesh" id="SphereMesh_qu7o2"]
+radius = 0.2
+height = 0.4
+
+[sub_resource type="BoxMesh" id="BoxMesh_jwpqk"]
+size = Vector3(0.405, 0.165, 0.775)
+
+[node name="CarSphere" type="RigidBody3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.62845, 0.377324, 5.19588)
+continuous_cd = true
+script = ExtResource("1_cthf0")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_qldxg")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
+mesh = SubResource("SphereMesh_qu7o2")
+
+[node name="MeshInstance3D_Car" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_jwpqk")
+skeleton = NodePath("../..")
+
+[node name="RayCast3D" type="RayCast3D" parent="MeshInstance3D_Car"]
