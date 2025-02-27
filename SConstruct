@@ -5,7 +5,7 @@ import sys
 from methods import print_error
 
 
-libname = "HOODIE"
+libname = "hoodie"
 projectdir = "demo"
 
 localEnv = Environment(tools=["default"], PLATFORM="")
@@ -37,6 +37,7 @@ env = SConscript("thirdparty/godot-cpp/SConstruct", {"env": env, "customs": cust
 
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
+sources = Glob("core/geo/*.cpp")
 
 if env["target"] in ["editor", "template_debug"]:
     try:
