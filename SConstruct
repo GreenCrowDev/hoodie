@@ -37,7 +37,7 @@ env = SConscript("thirdparty/godot-cpp/SConstruct", {"env": env, "customs": cust
 
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
-sources = Glob("core/geo/*.cpp")
+sources += Glob("src/core/geo/*.cpp")
 
 if env["target"] in ["editor", "template_debug"]:
     try:
@@ -59,7 +59,7 @@ library = env.SharedLibrary(
     source=sources,
 )
 
-copy = env.InstallAs("{}/bin/{}/{}lib{}".format(projectdir, env["platform"], filepath, file), library)
+copy = env.InstallAs("{}/addons/hoodie/{}/{}lib{}".format(projectdir, env["platform"], filepath, file), library)
 
 default_args = [library, copy]
 Default(*default_args)

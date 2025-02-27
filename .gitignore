@@ -19,20 +19,20 @@ bin/windows/*
 .sconsign*.dblite
 
 # Ignore library files but not the gdextension file
-demo/bin/*
-!demo/bin/android
-demo/bin/android/*
-!demo/bin/android/.gitkeep
-!demo/bin/linux
-demo/bin/linux/*
-!demo/bin/linux/.gitkeep
-!demo/bin/macos
-demo/bin/macos/*
-!demo/bin/macos/.gitkeep
-!demo/bin/windows
-demo/bin/windows/*
-!demo/bin/windows/.gitkeep
-!demo/bin/*.gdextension
+demo/addons/hoodie/*
+!demo/addons/hoodie/android
+demo/addons/hoodie/android/*
+!demo/addons/hoodie/android/.gitkeep
+!demo/addons/hoodie/linux
+demo/addons/hoodie/linux/*
+!demo/addons/hoodie/linux/.gitkeep
+!demo/addons/hoodie/macos
+demo/addons/hoodie/macos/*
+!demo/addons/hoodie/macos/.gitkeep
+!demo/addons/hoodie/windows
+demo/addons/hoodie/windows/*
+!demo/addons/hoodie/windows/.gitkeep
+!demo/addons/hoodie/*.gdextension
 .sconsign*.dblite
 
 # Ignore custom.py

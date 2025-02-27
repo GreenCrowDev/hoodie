@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://bmq7n1dffr046"]
+
+[ext_resource type="Script" path="res://scenes/start_here/hoodie_intro.gd" id="1_mgmr1"]
+
+[node name="StartHere" type="Node3D"]
+
+[node name="HoodieIntro" type="MeshInstance3D" parent="."]
+script = ExtResource("1_mgmr1")
