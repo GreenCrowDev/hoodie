@@ -17,6 +17,9 @@ protected:
 	static void _bind_methods();
 
 public:
+	PackedVector3Array get_points() const;
+	void set_points(const PackedVector3Array &p_points);
+
 	HoodieGeo();
 };
 
