@@ -57,7 +57,7 @@ AllowAllParametersOfDeclarationOnNextLine: false
 # BreakInheritanceList: BeforeColon
 # BreakBeforeTernaryOperators: true
 # BreakConstructorInitializersBeforeComma: false
-BreakConstructorInitializers: AfterColon
+BreakConstructorInitializers: BeforeColon
 # BreakStringLiterals: true
 ColumnLimit:     0
 # CommentPragmas:  '^ IWYU pragma:'
@@ -73,7 +73,7 @@ Cpp11BracedListStyle: false
 # EmptyLineBeforeAccessModifier: LogicalBlock
 # ExperimentalAutoDetectBinPacking: false
 # PackConstructorInitializers: BinPack
-ConstructorInitializerAllOnOneLineOrOnePerLine: true
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
 # AllowAllConstructorInitializersOnNextLine: true
 # FixNamespaceComments: true
 # ForEachMacros:
