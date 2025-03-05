@@ -1,8 +1,22 @@
-[gd_scene load_steps=2 format=3 uid="uid://bmq7n1dffr046"]
+[gd_scene load_steps=3 format=4 uid="uid://bmq7n1dffr046"]
 
 [ext_resource type="Script" path="res://scenes/start_here/hoodie_intro.gd" id="1_mgmr1"]
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_5shuk"]
+_surfaces = [{
+"aabb": AABB(0, 0, 0, 1, 1, 1e-05),
+"attribute_data": PackedByteArray("AAAA/wAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAAAAAA="),
+"format": 34359742527,
+"index_count": 12,
+"index_data": PackedByteArray("AAABAAIAAQADAAIAAAABAAIAAQADAAIA"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 4,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAAAAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAACAAAAAAAAAAIA=")
+}]
 
 [node name="StartHere" type="Node3D"]
 
 [node name="HoodieIntro" type="MeshInstance3D" parent="."]
+mesh = SubResource("ArrayMesh_5shuk")
 script = ExtResource("1_mgmr1")

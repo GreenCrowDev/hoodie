@@ -1,0 +1,21 @@
+import os
+from subprocess import call
+
+Import("env")
+
+lib_path = "../../pmp-library-3.0.0"
+
+runtime_lib = "-DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded"
+
+cmake_gen_cmd = "cmake -S {} -B {}/build -DBUILD_SHARED_LIBS=OFF -DPMP_BUILD_VIS=OFF -DPMP_BUILD_DOCS=OFF -DPMP_BUILD_EXAMPLES=OFF -DPMP_BUILD_TESTS=OFF {}".format(lib_path, lib_path, runtime_lib)
+call(cmake_gen_cmd, shell=True)
+
+cmake_build_cmd = "cmake --build {}/build --config Release".format(lib_path)
+call(cmake_build_cmd, shell=True)
+
+env.Append(LIBPATH=["#thirdparty/pmp-library-3.0.0/build/Release/"])
+env.Append(LIBS=["pmp"])
+env.Append(CPPPATH=["#thirdparty/pmp-library-3.0.0/src"])
+env.Append(CPPPATH=["#thirdparty/pmp-library-3.0.0/external/eigen-3.4.0"])
+
+Return("env")

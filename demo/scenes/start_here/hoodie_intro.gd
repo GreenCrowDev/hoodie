@@ -1,3 +1,4 @@
+@tool
 extends MeshInstance3D
 
 func _ready() -> void:
@@ -12,13 +13,18 @@ func _ready() -> void:
 	pts.push_back(Vector3(3, 0, 0))
 	hoodie_geo.points = pts;
 	
-	var el0 : PackedInt32Array
-	el0.append_array([0, 1, 2, 3])
-	var els : Array[PackedInt32Array]
-	els.push_back(el0)
-	hoodie_geo.elements = els
+	print_hoodie_geo_info(hoodie_geo)
+	
+	hoodie_geo.init_plane(1)
 	
 	print_hoodie_geo_info(hoodie_geo)
+	
+	var array_mesh := ArrayMesh.new()
+	var arr := hoodie_geo.to_array_mesh()
+	print(arr)
+	array_mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arr)
+	
+	mesh = array_mesh
 
 func print_hoodie_geo_info(hoodie_geo : HoodieGeo):
-	print("HoodieGeo: points[%s], elements[%s]" % [hoodie_geo.points.size(), hoodie_geo.elements.size()])
+	print("HoodieGeo: points[%s]" % [hoodie_geo.points.size()])
