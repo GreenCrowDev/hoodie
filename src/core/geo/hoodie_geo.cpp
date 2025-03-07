@@ -1,4 +1,5 @@
 #include "hoodie_geo.h"
+#include <core/enums/hoodie_enums.h>
 #include <core/utils/pmp_to_godot_converter.h>
 #include <pmp/algorithms/shapes.h>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -9,6 +10,9 @@ using namespace greencrow::hoodie;
 void HoodieGeo::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_points"), &HoodieGeo::get_points);
 	ClassDB::bind_method(D_METHOD("set_points", "points"), &HoodieGeo::set_points);
+	ClassDB::bind_method(D_METHOD("get_vertex_property", "name"), &HoodieGeo::get_vertex_property);
+	ClassDB::bind_method(D_METHOD("add_vertex_property", "name", "property"), &HoodieGeo::add_vertex_property);
+	ClassDB::bind_method(D_METHOD("has_vertex_property", "name"), &HoodieGeo::has_vertex_property);
 	ClassDB::bind_method(D_METHOD("init_plane", "resolution"), &HoodieGeo::init_plane, DEFVAL(4));
 	ClassDB::bind_method(D_METHOD("to_array_mesh"), &HoodieGeo::to_array_mesh);
 
@@ -47,24 +51,46 @@ void HoodieGeo::set_points(const PackedVector3Array &p_points) {
 }
 
 Variant HoodieGeo::get_vertex_property(const String &p_name) const {
-	// TexCoord type.
-	pmp::VertexProperty<pmp::TexCoord> tex_coord_vp = mesh->get_vertex_property<pmp::TexCoord>("v:" + std::string(p_name.ascii().get_data()));
-	if (tex_coord_vp) {
-		PackedVector2Array ret;
-		for (pmp::Vertex v : mesh->vertices()) {
-			ret[v.idx()] = PMPToGodotConverter::tex_coord_to_v2(tex_coord_vp[v]);
-		}
-		return ret;
-	}
+	PropertyKeyword pk = name_to_property_keyword(p_name);
 
-	// Normal type.
-	pmp::VertexProperty<pmp::Point> normal_vp = mesh->get_vertex_property<pmp::Normal>("v:" + std::string(p_name.ascii().get_data()));
-	if (normal_vp) {
-		PackedVector3Array ret;
-		for (pmp::Vertex v : mesh->vertices()) {
-			ret[v.idx()] = PMPToGodotConverter::point_to_v3(normal_vp[v]);
+	if (pk == PropertyKeyword::POINT) {
+		return Variant();
+	} else if (pk == PropertyKeyword::NORMAL) {
+		pmp::VertexProperty<pmp::Normal> normal_vp = mesh->get_vertex_property<pmp::Normal>("v:" + std::string(p_name.ascii().get_data()));
+		if (normal_vp) {
+			PackedVector3Array ret;
+			ret.resize(mesh->vertices_size());
+			for (pmp::Vertex v : mesh->vertices()) {
+				ret[v.idx()] = PMPToGodotConverter::point_to_v3(normal_vp[v]);
+			}
+			return ret;
 		}
-		return ret;
+	} else if (pk == PropertyKeyword::TANGENT) {
+		return Variant();
+	} else if (pk == PropertyKeyword::COLOR) {
+		pmp::VertexProperty<pmp::Color> color_vp = mesh->get_vertex_property<pmp::Color>("v:" + std::string(p_name.ascii().get_data()));
+		if (color_vp) {
+			PackedColorArray ret;
+			ret.resize(mesh->vertices_size());
+			for (pmp::Vertex v : mesh->vertices()) {
+				ret[v.idx()] = PMPToGodotConverter::point_to_col(color_vp[v]);
+			}
+			return ret;
+		}
+		return Variant();
+	} else if (pk == PropertyKeyword::UV) {
+		pmp::VertexProperty<pmp::TexCoord> tex_coord_vp = mesh->get_vertex_property<pmp::TexCoord>("v:" + std::string(p_name.ascii().get_data()));
+		if (tex_coord_vp) {
+			PackedVector2Array ret;
+			ret.resize(mesh->vertices_size());
+			for (pmp::Vertex v : mesh->vertices()) {
+				ret[v.idx()] = PMPToGodotConverter::tex_coord_to_v2(tex_coord_vp[v]);
+			}
+			return ret;
+		}
+		return Variant();
+	} else if (pk == PropertyKeyword::UV2) {
+		return Variant();
 	}
 
 	UtilityFunctions::push_warning("Vertex property type not supported.");
@@ -84,9 +110,17 @@ void HoodieGeo::add_vertex_property(const String &p_name, const Variant p_proper
 		}
 		case Variant::PACKED_VECTOR3_ARRAY: {
 			PackedVector3Array vec_prop = p_property;
-			pmp::VertexProperty<pmp::Point> vp = mesh->add_vertex_property<pmp::Normal>("v:" + std::string(p_name.ascii().get_data()));
+			pmp::VertexProperty<pmp::Point> vp = mesh->add_vertex_property<pmp::Point>("v:" + std::string(p_name.ascii().get_data()));
 			for (pmp::Vertex v : mesh->vertices()) {
 				vp[v] = PMPToGodotConverter::v3_to_point(vec_prop[v.idx()]);
+			}
+			break;
+		}
+		case Variant::PACKED_COLOR_ARRAY: {
+			PackedColorArray col_prop = p_property;
+			pmp::VertexProperty<pmp::Color> vp = mesh->add_vertex_property<pmp::Color>("v:" + std::string(p_name.ascii().get_data()));
+			for (pmp::Vertex v : mesh->vertices()) {
+				vp[v] = PMPToGodotConverter::col_to_point(col_prop[v.idx()]);
 			}
 			break;
 		}

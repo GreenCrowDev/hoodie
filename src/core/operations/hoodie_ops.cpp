@@ -6,6 +6,7 @@ using namespace greencrow::hoodie;
 
 void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "closed", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
 }
 
 Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<HoodieGeo> p_profile, const bool p_closed, const bool p_u_dist, const bool p_v_dist) {
@@ -38,12 +39,14 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 	PackedVector3Array normals;
 	PackedFloat32Array tangents;
 	PackedVector2Array uvs;
+	PackedColorArray colors;
 	PackedInt32Array indices;
 
 	vertices.resize(total_verts);
 	normals.resize(total_verts);
 	tangents.resize(total_verts * 4);
 	uvs.resize(total_verts);
+	colors.resize(total_verts);
 	indices.resize(total_indices);
 
 	PackedVector3Array curve_pos = p_curve->get_points();
@@ -53,6 +56,7 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 	PackedVector3Array curve_nor;
 	PackedFloat32Array curve_tilt;
 	PackedFloat32Array curve_weight;
+	PackedColorArray curve_color;
 
 	if (p_curve->has_vertex_property("T")) {
 		curve_tan = p_curve->get_vertex_property("T");
@@ -84,6 +88,13 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 	} else {
 		curve_weight.resize(path_size);
 		curve_weight.fill(1.0);
+	}
+
+	if (p_curve.ptr()->has_vertex_property("C")) {
+		curve_color = p_curve->get_vertex_property("C");
+	} else {
+		curve_color.resize(path_size);
+		curve_color.fill(Color(0, 0, 0));
 	}
 
 	float shape_length = 0;
@@ -145,6 +156,7 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 				int index = p * shape_verts_size + s;
 				vertices[index] = frame.xform(profile_pos[s] * curve_weight[p]);
 				normals[index] = curve_nor[p];
+				colors[index] = curve_color[p];
 
 				float uv_u = p_u_dist ? u_distances[j] : p;
 				float uv_v = p_v_dist ? v_distances[s] : s;
@@ -172,6 +184,7 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 	r_hgeo->set_points(vertices);
 	r_hgeo->add_vertex_property("N", normals);
 	r_hgeo->add_vertex_property("UV", uvs);
+	r_hgeo->add_vertex_property("C", colors);
 	r_hgeo->set_faces(out_faces);
 
 	return r_hgeo;
@@ -196,4 +209,59 @@ PackedFloat32Array HoodieOps::progressive_path_distances(const PackedVector3Arra
 	}
 
 	return distances;
+}
+
+PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_points, const PackedVector3Array &p_up_vectors, const bool p_loop) {
+	PackedVector3Array up_vecs = p_up_vectors;
+	up_vecs.resize(p_points.size());
+
+	PackedFloat32Array curvature_values;
+	curvature_values.resize(p_points.size());
+
+	// https://hratliff.com/posts/2019/02/curvature-of-three-points
+	// https://math.stackexchange.com/questions/128991/how-to-calculate-the-area-of-a-3d-triangle
+	for (int i = 0; i < p_points.size(); i++) {
+		Vector3 a;
+		Vector3 b = p_points[i];
+		Vector3 c;
+
+		if (i == 0) {
+			if (p_loop) {
+				a = p_points[p_points.size() - 1];
+			} else {
+				curvature_values[i] = 0;
+				continue;
+			}
+		} else {
+			a = p_points[i - 1];
+		}
+
+		if (i == p_points.size() - 1) {
+			if (p_loop) {
+				c = p_points[0];
+			} else {
+				curvature_values[i] = 0;
+				continue;
+			}
+		} else {
+			c = p_points[i + 1];
+		}
+
+		Vector3 bc = c - b;
+		Vector3 ba = a - b;
+		Vector3 ca = a - c;
+
+		Vector3 cross = ba.cross(bc);
+
+		float area = cross.length() * 0.5;
+
+		float signed_angle = ba.signed_angle_to(bc, up_vecs[i]);
+		float sign = Math::sign(signed_angle);
+
+		float curvature = sign * (4 * area) / (bc.length() * ba.length() * ca.length());
+
+		curvature_values[i] = curvature;
+	}
+
+	return curvature_values;
 }
