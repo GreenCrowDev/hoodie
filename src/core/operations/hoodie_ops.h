@@ -12,8 +12,10 @@ protected:
 	static void _bind_methods();
 
 public:
+	// Curve.
 	static Ref<HoodieGeo> curve_sweep(Ref<HoodieGeo> p_curve, Ref<HoodieGeo> p_profile, const bool p_closed = false, const bool p_u_dist = false, const bool p_v_dist = false);
 	static PackedFloat32Array progressive_path_distances(const PackedVector3Array &p_points);
+	static PackedFloat32Array points_curvature(const PackedVector3Array &p_points, const PackedVector3Array &p_up_vectors, const bool p_loop = false);
 };
 
 } // namespace godot::greencrow::hoodie

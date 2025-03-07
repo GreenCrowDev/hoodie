@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3 uid="uid://cwknscap6g4sk"]
+
+[ext_resource type="Shader" uid="uid://but4e2chx8nig" path="res://shaders/vertex_color.tres" id="1_j6py2"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_j6py2")

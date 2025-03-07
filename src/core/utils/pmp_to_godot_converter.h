@@ -16,6 +16,11 @@ public:
 	static Vector3 point_to_v3(const pmp::Point &p_point);
 	static pmp::Point v3_to_point(const Vector3 &p_vector);
 
+	static Color col_to_pmp_col(const pmp::Color &p_color);
+	static pmp::Color pmp_col_to_col(const Color &p_color);
+	static Color point_to_col(const pmp::Point &p_point);
+	static pmp::Point col_to_point(const Color &p_color);
+
 	static Array surface_to_array_mesh(const pmp::SurfaceMesh &p_surface_mesh);
 };
 

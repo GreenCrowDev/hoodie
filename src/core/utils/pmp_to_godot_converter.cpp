@@ -19,9 +19,27 @@ pmp::Point PMPToGodotConverter::v3_to_point(const Vector3 &p_vector) {
 	return pmp::Point(p_vector.x, p_vector.y, p_vector.z);
 }
 
+Color PMPToGodotConverter::col_to_pmp_col(const pmp::Color &p_color) {
+	return Color(p_color[0], p_color[1], p_color[2]);
+}
+
+pmp::Color PMPToGodotConverter::pmp_col_to_col(const Color &p_color) {
+	return pmp::Color(p_color.r, p_color.g, p_color.b);
+}
+
+Color PMPToGodotConverter::point_to_col(const pmp::Point &p_point) {
+	return Color(p_point[0], p_point[1], p_point[2]);
+}
+
+pmp::Point PMPToGodotConverter::col_to_point(const Color &p_color) {
+	return pmp::Point(p_color.r, p_color.g, p_color.b);
+}
+
 Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surface_mesh) {
 	Array mesh;
 	mesh.resize(ArrayMesh::ARRAY_MAX);
+
+	const int v_size = p_surface_mesh.vertices_size();
 
 	PackedVector3Array vertices;
 	PackedVector3Array normals;
@@ -39,37 +57,42 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 
 	// Vertices.
 	pmp::VertexProperty<pmp::Point> points = p_surface_mesh.get_vertex_property<pmp::Point>("v:point");
-	for (pmp::Vertex v : p_surface_mesh.vertices()) {
-		vertices.append(point_to_v3(points[v]));
-	}
 
 	// Normals.
-	normals.resize(vertices.size());
+	normals.resize(v_size);
 
 	// Tangents.
-	tangents.resize(vertices.size() * 4);
+	tangents.resize(v_size * 4);
 
 	// Colors.
-	colors.resize(vertices.size());
+	pmp::VertexProperty<pmp::Color> surface_colors = p_surface_mesh.get_vertex_property<pmp::Color>("v:C");
 
 	// UV.
-	uv.resize(vertices.size());
+	uv.resize(v_size);
 
 	// UV2.
-	uv2.resize(vertices.size());
+	uv2.resize(v_size);
 
-	custom0.resize(vertices.size());
-	custom1.resize(vertices.size());
-	custom2.resize(vertices.size());
-	custom3.resize(vertices.size());
+	custom0.resize(v_size);
+	custom1.resize(v_size);
+	custom2.resize(v_size);
+	custom3.resize(v_size);
 
 	// Bones.
 	// TODO: Implement ARRAY_FLAG_USE_8_BONE_WEIGHTS.
-	bones.resize(vertices.size() * 4);
+	bones.resize(v_size * 4);
 
 	// Weights.
 	// TODO: Implement ARRAY_FLAG_USE_8_BONE_WEIGHTS.
-	weights.resize(vertices.size() * 4);
+	weights.resize(v_size * 4);
+
+	for (pmp::Vertex v : p_surface_mesh.vertices()) {
+		vertices.append(point_to_v3(points[v]));
+
+		if (surface_colors) {
+			colors.append(point_to_col(surface_colors[v]));
+		}
+	}
 
 	// Indices.
 	for (pmp::Face f : p_surface_mesh.faces()) {
