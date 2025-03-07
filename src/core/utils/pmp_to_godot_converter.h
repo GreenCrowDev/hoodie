@@ -10,6 +10,9 @@ namespace godot::greencrow::hoodie {
 
 class PMPToGodotConverter {
 public:
+	static Vector2 tex_coord_to_v2(const pmp::TexCoord &p_tex_coord);
+	static pmp::TexCoord v2_to_tex_coord(const Vector2 &p_vector);
+
 	static Vector3 point_to_v3(const pmp::Point &p_point);
 	static pmp::Point v3_to_point(const Vector3 &p_vector);
 

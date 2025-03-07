@@ -39,6 +39,7 @@ env = SConscript("thirdparty/build_scripts/pmp-library/SCsub", {"env": env})
 env.Append(CPPPATH=["src/"])
 sources = Glob("src/*.cpp")
 sources += Glob("src/core/geo/*.cpp")
+sources += Glob("src/core/operations/*.cpp")
 sources += Glob("src/core/utils/*.cpp")
 
 if env["target"] in ["editor", "template_debug"]:

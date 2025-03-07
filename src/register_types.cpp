@@ -5,6 +5,7 @@
 #include <godot_cpp/godot.hpp>
 
 #include "core/geo/hoodie_geo.h"
+#include "core/operations/hoodie_ops.h"
 
 using namespace godot;
 using namespace greencrow::hoodie;
@@ -15,6 +16,7 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 	}
 
 	ClassDB::register_class<HoodieGeo>();
+	ClassDB::register_abstract_class<HoodieOps>();
 }
 
 void uninitialize_gdextension_types(ModuleInitializationLevel p_level) {

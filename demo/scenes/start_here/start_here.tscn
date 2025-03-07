@@ -2,14 +2,15 @@
 
 [ext_resource type="Script" path="res://scenes/start_here/hoodie_intro.gd" id="1_mgmr1"]
 
-[sub_resource type="ArrayMesh" id="ArrayMesh_5shuk"]
+[sub_resource type="ArrayMesh" id="ArrayMesh_v31sb"]
 _surfaces = [{
 "aabb": AABB(0, 0, 0, 1, 1, 1e-05),
 "attribute_data": PackedByteArray("AAAA/wAAAAAAAAAAAAAAAAAAAAAAAAD/AAAAAAAAAAAAAAAAAAAAAAAAAP8AAAAAAAAAAAAAAAAAAAAAAAAA/wAAAAAAAAAAAAAAAAAAAAA="),
-"format": 34359742527,
-"index_count": 12,
-"index_data": PackedByteArray("AAABAAIAAQADAAIAAAABAAIAAQADAAIA"),
+"format": 34359745599,
+"index_count": 6,
+"index_data": PackedByteArray("AAABAAIAAQADAAIA"),
 "primitive": 3,
+"skin_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=="),
 "uv_scale": Vector4(0, 0, 0, 0),
 "vertex_count": 4,
 "vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAgD8AAAAAAACAPwAAAAAAAAAAAACAPwAAgD8AAAAAAAAAAAAAAIAAAAAAAAAAgAAAAAAAAACAAAAAAAAAAIA=")
@@ -18,5 +19,5 @@ _surfaces = [{
 [node name="StartHere" type="Node3D"]
 
 [node name="HoodieIntro" type="MeshInstance3D" parent="."]
-mesh = SubResource("ArrayMesh_5shuk")
+mesh = SubResource("ArrayMesh_v31sb")
 script = ExtResource("1_mgmr1")

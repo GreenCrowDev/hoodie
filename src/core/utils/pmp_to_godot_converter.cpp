@@ -3,6 +3,14 @@
 using namespace godot;
 using namespace greencrow::hoodie;
 
+Vector2 PMPToGodotConverter::tex_coord_to_v2(const pmp::TexCoord &p_point) {
+	return Vector2(p_point[0], p_point[1]);
+}
+
+pmp::TexCoord PMPToGodotConverter::v2_to_tex_coord(const Vector2 &p_vector) {
+	return pmp::TexCoord(p_vector.x, p_vector.y);
+}
+
 Vector3 PMPToGodotConverter::point_to_v3(const pmp::Point &p_point) {
 	return Vector3(p_point[0], p_point[1], p_point[2]);
 }
@@ -31,7 +39,7 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 
 	// Vertices.
 	pmp::VertexProperty<pmp::Point> points = p_surface_mesh.get_vertex_property<pmp::Point>("v:point");
-	for (auto v : p_surface_mesh.vertices()) {
+	for (pmp::Vertex v : p_surface_mesh.vertices()) {
 		vertices.append(point_to_v3(points[v]));
 	}
 
@@ -79,8 +87,10 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 				indices.append(ids[3]);
 				indices.append(ids[2]);
 				indices.append(ids[1]);
+				break;
 			default:
 				indices.append_array(indices);
+				break;
 		}
 	}
 
