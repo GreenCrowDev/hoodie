@@ -5,8 +5,38 @@ using namespace godot;
 using namespace greencrow::hoodie;
 
 void HoodieOps::_bind_methods() {
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("noise_reduction", "values", "severity", "loop"), &HoodieOps::noise_reduction, DEFVAL(4), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "loop", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
+}
+
+PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values, const int p_severity, const bool p_loop) {
+	// https://stackoverflow.com/questions/7811761/smoothing-a-2d-line-from-an-array-of-points
+	PackedFloat32Array ret;
+
+	for (int i = 0; i < p_values.size(); i++) {
+		int start;
+		int end;
+
+		if (p_loop) {
+			start = i - p_severity;
+			end = i + p_severity;
+		} else {
+			start = Math::max(0, i - p_severity);
+			end = Math::min(p_values.size() - 1, (int64_t)(i + p_severity));
+		}
+
+		float sum = 0;
+		for (int j = start; j < end; j++) {
+			int id = (((j) % p_values.size()) + p_values.size()) % p_values.size();
+			sum += p_values[id];
+		}
+
+		float avg = sum / p_severity * 2;
+		ret.push_back(avg);
+	}
+
+	return ret;
 }
 
 Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<HoodieGeo> p_profile, const bool p_loop, const bool p_u_dist, const bool p_v_dist) {
@@ -214,6 +244,11 @@ PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_point
 	PackedFloat32Array curvature_values;
 	curvature_values.resize(p_points.size());
 
+	if (p_points.size() < 3) {
+		UtilityFunctions::push_warning("List has not enough points (needs at least 3).");
+		return PackedFloat32Array();
+	}
+
 	// https://hratliff.com/posts/2019/02/curvature-of-three-points
 	// https://math.stackexchange.com/questions/128991/how-to-calculate-the-area-of-a-3d-triangle
 	for (int i = 0; i < p_points.size(); i++) {
@@ -223,7 +258,7 @@ PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_point
 
 		if (i == 0) {
 			if (p_loop) {
-				a = p_points[p_points.size() - 1];
+				a = p_points[p_points.size() - 2];
 			} else {
 				curvature_values[i] = 0;
 				continue;
@@ -234,7 +269,7 @@ PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_point
 
 		if (i == p_points.size() - 1) {
 			if (p_loop) {
-				c = p_points[0];
+				curvature_values[i] = curvature_values[0];
 			} else {
 				curvature_values[i] = 0;
 				continue;
