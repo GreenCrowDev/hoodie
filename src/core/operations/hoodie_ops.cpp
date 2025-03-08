@@ -5,17 +5,17 @@ using namespace godot;
 using namespace greencrow::hoodie;
 
 void HoodieOps::_bind_methods() {
-	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "closed", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "loop", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
 }
 
-Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<HoodieGeo> p_profile, const bool p_closed, const bool p_u_dist, const bool p_v_dist) {
+Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<HoodieGeo> p_profile, const bool p_loop, const bool p_u_dist, const bool p_v_dist) {
 	if (p_curve.is_null() || p_profile.is_null()) {
 		return Ref<HoodieGeo>();
 	}
 
 	const int shape_size = p_profile->get_points().size();
-	const int shape_verts_size = shape_size + (p_closed ? 1 : 0);
+	const int shape_verts_size = shape_size;
 	const int path_size = p_curve->get_points().size();
 	const int total_verts = shape_verts_size * path_size;
 	const int total_indices = 2 * 3 * (path_size - 1) * (shape_verts_size - 1);
@@ -27,11 +27,6 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 
 	if (shape_size <= 1) {
 		UtilityFunctions::push_warning("Shape has not enough points (needs at least 2).");
-		return Ref<HoodieGeo>();
-	}
-
-	if (p_closed && (shape_size == 2)) {
-		UtilityFunctions::push_warning("Shape has not enough points to be closed (needs at least 3).");
 		return Ref<HoodieGeo>();
 	}
 
@@ -62,11 +57,16 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 		curve_tan = p_curve->get_vertex_property("T");
 	} else {
 		curve_tan.resize(path_size);
+
 		for (int i = 0; i < path_size - 1; i++) {
-			curve_tan[i] = curve_pos[i + 1] - curve_pos[i];
+			curve_tan[i] = (curve_pos[i + 1] - curve_pos[i]).normalized();
 		}
-		// TODO: if the path is closed, the tangent should point towards the first point.
-		curve_tan[path_size - 1] = curve_tan[path_size - 2];
+
+		if (p_loop) {
+			curve_tan[path_size - 1] = curve_tan[0];
+		} else {
+			curve_tan[path_size - 1] = curve_tan[path_size - 2];
+		}
 	}
 
 	if (p_curve->has_vertex_property("N")) {
@@ -140,10 +140,6 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 			int p = in_verts[j];
 			// Construct frame with vectors taken from the Curve3D and tilt.
 			Transform3D frame;
-
-			if (j == in_verts.size() - 1 && in_verts.size() > 1) {
-				curve_tan[p] = curve_tan[in_verts[j - 1]];
-			}
 
 			frame = Transform3D(-curve_tan[p].cross(curve_nor[p]).normalized(), curve_nor[p], curve_tan[p], curve_pos[p]);
 			frame.rotate_basis(frame.basis.get_column(2), curve_tilt[p]);
