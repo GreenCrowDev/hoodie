@@ -7,6 +7,8 @@ using namespace greencrow::hoodie;
 void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("noise_reduction", "values", "severity", "loop"), &HoodieOps::noise_reduction, DEFVAL(4), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "loop", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("progressive_path_distances", "points"), &HoodieOps::progressive_path_distances);
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("calc_path_tangents", "points", "loop"), &HoodieOps::calc_path_tangents, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
 }
 
@@ -86,17 +88,7 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 	if (p_curve->has_vertex_property("T")) {
 		curve_tan = p_curve->get_vertex_property("T");
 	} else {
-		curve_tan.resize(path_size);
-
-		for (int i = 0; i < path_size - 1; i++) {
-			curve_tan[i] = (curve_pos[i + 1] - curve_pos[i]).normalized();
-		}
-
-		if (p_loop) {
-			curve_tan[path_size - 1] = curve_tan[0];
-		} else {
-			curve_tan[path_size - 1] = curve_tan[path_size - 2];
-		}
+		curve_tan = calc_path_tangents(curve_pos, p_loop);
 	}
 
 	if (p_curve->has_vertex_property("N")) {
@@ -235,6 +227,25 @@ PackedFloat32Array HoodieOps::progressive_path_distances(const PackedVector3Arra
 	}
 
 	return distances;
+}
+
+PackedVector3Array HoodieOps::calc_path_tangents(const PackedVector3Array &p_points, const bool p_loop) {
+	PackedVector3Array ret;
+	const int path_size = p_points.size();
+
+	ret.resize(path_size);
+
+	for (int i = 0; i < path_size - 1; i++) {
+		ret[i] = (p_points[i + 1] - p_points[i]).normalized();
+	}
+
+	if (p_loop) {
+		ret[path_size - 1] = ret[0];
+	} else {
+		ret[path_size - 1] = ret[path_size - 2];
+	}
+
+	return ret;
 }
 
 PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_points, const PackedVector3Array &p_up_vectors, const bool p_loop) {
