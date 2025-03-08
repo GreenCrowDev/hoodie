@@ -4,7 +4,9 @@
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
 
+#include "core/geo/hoodie_curve.h"
 #include "core/geo/hoodie_geo.h"
+#include "core/geo/hoodie_mesh.h"
 #include "core/operations/hoodie_ops.h"
 
 using namespace godot;
@@ -15,7 +17,9 @@ void initialize_gdextension_types(ModuleInitializationLevel p_level) {
 		return;
 	}
 
-	ClassDB::register_class<HoodieGeo>();
+	ClassDB::register_abstract_class<HoodieGeo>();
+	ClassDB::register_class<HoodieCurve>();
+	ClassDB::register_class<HoodieMesh>();
 	ClassDB::register_abstract_class<HoodieOps>();
 }
 

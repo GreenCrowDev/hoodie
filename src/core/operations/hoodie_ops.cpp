@@ -10,6 +10,7 @@ void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("progressive_path_distances", "points"), &HoodieOps::progressive_path_distances);
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("calc_path_tangents", "points", "loop"), &HoodieOps::calc_path_tangents, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("break_path", "ids", "filter"), &HoodieOps::break_path);
 }
 
 PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values, const int p_severity, const bool p_loop) {
@@ -41,7 +42,7 @@ PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values
 	return ret;
 }
 
-Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<HoodieGeo> p_profile, const bool p_loop, const bool p_u_dist, const bool p_v_dist) {
+Ref<HoodieMesh> HoodieOps::curve_sweep(const Ref<HoodieCurve> p_curve, const Ref<HoodieCurve> p_profile, const bool p_loop, const bool p_u_dist, const bool p_v_dist) {
 	if (p_curve.is_null() || p_profile.is_null()) {
 		return Ref<HoodieGeo>();
 	}
@@ -131,81 +132,59 @@ Ref<HoodieGeo> HoodieOps::curve_sweep(const Ref<HoodieGeo> p_curve, const Ref<Ho
 
 	TypedArray<PackedInt32Array> out_faces;
 
-	TypedArray<PackedInt32Array> curve_ids;
-	curve_ids = p_curve->get_faces();
+	const PackedVector3Array in_points = p_curve->get_points();
 
-	// If there are no faces just connect all the points in a chain.
-	if (curve_ids.size() == 0) {
-		PackedInt32Array vertices;
-		for (int v : p_curve->get_vertices_id()) {
-			vertices.push_back(v);
-		}
-		curve_ids.push_back(vertices);
-	}
+	// Calculate path progressive distance for UV U purpose.
+	const PackedFloat32Array u_distances = progressive_path_distances(in_points);
+	const PackedFloat32Array v_distances = progressive_path_distances(profile_pos);
 
-	for (int i = 0; i < curve_ids.size(); i++) {
-		PackedInt32Array in_verts = curve_ids[i];
+	// Extrusion: each quad is a primitive.
+	for (int j = 0; j < in_points.size(); j++) {
+		// Construct frame with vectors taken from the Curve3D and tilt.
+		Transform3D frame;
 
-		// FIXME: Is this correct if the pmp::mesh has deleted points? Are the ids correct?
-		PackedVector3Array in_points;
-		for (int v : in_verts) {
-			in_points.push_back(curve_pos[v]);
-		}
+		frame = Transform3D(-curve_tan[j].cross(curve_nor[j]).normalized(), curve_nor[j], curve_tan[j], curve_pos[j]);
+		frame.rotate_basis(frame.basis.get_column(2), curve_tilt[j]);
 
-		// Calculate path progressive distance for UV U purpose.
-		PackedFloat32Array u_distances = progressive_path_distances(in_points);
-		PackedFloat32Array v_distances = progressive_path_distances(profile_pos);
+		// Populate arrays.
+		for (int s = 0; s < shape_verts_size; s++) {
+			PackedInt32Array face_ids;
+			face_ids.resize(4);
 
-		// Extrusion: each quad is a primitive.
-		int triangle_index = 0;
-		for (int j = 0; j < in_verts.size(); j++) {
-			int p = in_verts[j];
-			// Construct frame with vectors taken from the Curve3D and tilt.
-			Transform3D frame;
+			int index = j * shape_verts_size + s;
+			vertices[index] = frame.xform(profile_pos[s] * curve_weight[j]);
+			normals[index] = curve_nor[j];
+			colors[index] = curve_color[j];
 
-			frame = Transform3D(-curve_tan[p].cross(curve_nor[p]).normalized(), curve_nor[p], curve_tan[p], curve_pos[p]);
-			frame.rotate_basis(frame.basis.get_column(2), curve_tilt[p]);
+			float uv_u = p_u_dist ? u_distances[j] : j;
+			float uv_v = p_v_dist ? v_distances[s] : s;
+			uvs[index] = Vector2(uv_u, uv_v);
 
-			// Populate arrays.
-			for (int s = 0; s < shape_verts_size; s++) {
-				PackedInt32Array face_ids;
-				face_ids.resize(4);
+			if (j > in_points.size() - 2)
+				continue;
+			if (s > shape_verts_size - 2)
+				continue;
 
-				int index = p * shape_verts_size + s;
-				vertices[index] = frame.xform(profile_pos[s] * curve_weight[p]);
-				normals[index] = curve_nor[p];
-				colors[index] = curve_color[p];
+			int id = j * shape_verts_size + s;
 
-				float uv_u = p_u_dist ? u_distances[j] : p;
-				float uv_v = p_v_dist ? v_distances[s] : s;
-				uvs[index] = Vector2(uv_u, uv_v);
+			face_ids[0] = id + shape_verts_size + 1;
+			face_ids[1] = id + 1;
+			face_ids[2] = id;
+			face_ids[3] = id + shape_verts_size;
 
-				if (j > in_verts.size() - 2)
-					continue;
-				if (s > shape_verts_size - 2)
-					continue;
-
-				int id = p * shape_verts_size + s;
-
-				face_ids[0] = id + shape_verts_size + 1;
-				face_ids[1] = id + 1;
-				face_ids[2] = id;
-				face_ids[3] = id + shape_verts_size;
-
-				out_faces.push_back(face_ids);
-			}
+			out_faces.push_back(face_ids);
 		}
 	}
 
-	Ref<HoodieGeo> r_hgeo;
-	r_hgeo.instantiate();
-	r_hgeo->set_points(vertices);
-	r_hgeo->add_vertex_property("N", normals);
-	r_hgeo->add_vertex_property("UV", uvs);
-	r_hgeo->add_vertex_property("C", colors);
-	r_hgeo->set_faces(out_faces);
+	Ref<HoodieMesh> r_hm;
+	r_hm.instantiate();
+	r_hm->set_points(vertices);
+	r_hm->add_vertex_property("N", normals);
+	r_hm->add_vertex_property("UV", uvs);
+	r_hm->add_vertex_property("C", colors);
+	r_hm->set_faces(out_faces);
 
-	return r_hgeo;
+	return r_hm;
 }
 
 PackedFloat32Array HoodieOps::progressive_path_distances(const PackedVector3Array &p_points) {
@@ -306,4 +285,51 @@ PackedFloat32Array HoodieOps::points_curvature(const PackedVector3Array &p_point
 	}
 
 	return curvature_values;
+}
+
+TypedArray<PackedInt32Array> HoodieOps::break_path(const PackedInt32Array &p_ids, const TypedArray<bool> &p_break) {
+	if (p_ids.size() != p_break.size()) {
+		UtilityFunctions::push_warning("Lists are not of the same size.");
+		return TypedArray<PackedInt32Array>();
+	}
+
+	const int pts_size = p_ids.size();
+
+	TypedArray<PackedInt32Array> ret;
+	PackedInt32Array vertices;
+
+	int prim_counter = 0;
+	for (int i = 0; i < pts_size; i++) {
+		if (!p_break[i]) {
+			if (i == 0) {
+				vertices.append(0);
+				vertices.append(1);
+			} else {
+				if (vertices.size() != 0 && vertices[vertices.size() - 1] != i) {
+					vertices.append(i);
+				}
+
+				if (i < pts_size - 1) {
+					vertices.append(i + 1);
+				} else {
+					vertices.append(0);
+				}
+			}
+		} else {
+			if (i == 0) {
+				continue;
+			}
+
+			ret.push_back(vertices);
+			vertices.clear();
+
+			vertices.push_back((i + 1) % pts_size);
+
+			prim_counter++;
+		}
+	}
+
+	ret.push_back(vertices);
+
+	return ret;
 }
