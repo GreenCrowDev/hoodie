@@ -1,4 +1,5 @@
 #include "hoodie_ops.h"
+#include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
@@ -11,6 +12,7 @@ void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("calc_path_tangents", "points", "loop"), &HoodieOps::calc_path_tangents, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("break_path", "ids", "filter"), &HoodieOps::break_path);
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_offset", "curve", "delta", "normal", "polygon"), &HoodieOps::curve_offset, DEFVAL(Vector3(0, 1, 0)), DEFVAL(false));
 }
 
 PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values, const int p_severity, const bool p_loop) {
@@ -330,6 +332,53 @@ TypedArray<PackedInt32Array> HoodieOps::break_path(const PackedInt32Array &p_ids
 	}
 
 	ret.push_back(vertices);
+
+	return ret;
+}
+
+TypedArray<HoodieCurve> HoodieOps::curve_offset(Ref<HoodieCurve> p_curve, const float p_delta, const Vector3 &p_normal, const bool p_polygon) {
+	Geometry2D *g2d = Geometry2D::get_singleton();
+	TypedArray<PackedVector2Array> offset;
+
+	// Create plane and uv vectors.
+	const Plane plane = Plane(p_normal, Vector3(0, 0, 0));
+	Vector3 u = p_normal.cross(Vector3(1, 0, 0));
+	if (u.length() < 1e-6) {
+		u = p_normal.cross(Vector3(0, 1, 0));
+	}
+	u.normalize();
+	Vector3 v = p_normal.cross(u);
+	v.normalize();
+
+	// Calculate points relative to the plane frame.
+	PackedVector2Array in;
+	for (int i = 0; i < p_curve->get_points().size(); i++) {
+		Vector3 proj_pt = plane.project(p_curve->get_points()[i]);
+		float x = proj_pt.dot(u);
+		float y = proj_pt.dot(v);
+		in.append(Vector2(x, y));
+	}
+
+	if (p_polygon) {
+		offset = g2d->offset_polygon(in, p_delta);
+	} else {
+		offset = g2d->offset_polyline(in, p_delta, Geometry2D::JOIN_SQUARE, Geometry2D::END_ROUND);
+	}
+
+	TypedArray<HoodieCurve> ret;
+
+	for (int i = 0; i < offset.size(); i++) {
+		PackedVector2Array o = offset[i];
+		PackedVector3Array v3;
+		for (int j = 0; j < o.size(); j++) {
+			// Transform back to global ref.
+			v3.append(Vector3(0, 0, 0) + o[j].x * u + o[j].y * v);
+		}
+		Ref<HoodieCurve> hc;
+		hc.instantiate();
+		hc->set_points(v3);
+		ret.append(hc);
+	}
 
 	return ret;
 }

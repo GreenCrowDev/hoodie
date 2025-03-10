@@ -9,6 +9,7 @@ using namespace greencrow::hoodie;
 void HoodieCurve::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_points"), &HoodieCurve::get_points);
 	ClassDB::bind_method(D_METHOD("set_points", "points"), &HoodieCurve::set_points);
+	ClassDB::bind_method(D_METHOD("add_point", "point"), &HoodieCurve::add_point);
 
 	ClassDB::bind_method(D_METHOD("get_vertex_property", "name"), &HoodieCurve::get_vertex_property);
 	ClassDB::bind_method(D_METHOD("add_vertex_property", "name", "property"), &HoodieCurve::add_vertex_property);
@@ -25,6 +26,10 @@ PackedVector3Array HoodieCurve::get_points() const {
 
 void HoodieCurve::set_points(const PackedVector3Array &p_points) {
 	points = p_points;
+}
+
+void HoodieCurve::add_point(const Vector3 &point) {
+	points.append(point);
 }
 
 Array HoodieCurve::get_vertex_property(const String &p_name) const {
