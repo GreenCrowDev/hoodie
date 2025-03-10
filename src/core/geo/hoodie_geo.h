@@ -22,6 +22,8 @@ public:
 	virtual void add_vertex_property(const String &p_name, const Array &p_property);
 	virtual bool has_vertex_property(const String &p_name) const;
 
+	virtual Ref<HoodieGeo> duplicate() const;
+
 	HoodieGeo();
 };
 
