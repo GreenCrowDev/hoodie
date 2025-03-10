@@ -68,7 +68,7 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 	pmp::VertexProperty<pmp::Color> surface_colors = p_surface_mesh.get_vertex_property<pmp::Color>("v:C");
 
 	// UV.
-	uv.resize(v_size);
+	pmp::VertexProperty<pmp::TexCoord> surface_uvs = p_surface_mesh.get_vertex_property<pmp::TexCoord>("v:UV");
 
 	// UV2.
 	uv2.resize(v_size);
@@ -91,6 +91,10 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 
 		if (surface_colors) {
 			colors.append(point_to_col(surface_colors[v]));
+		}
+
+		if (surface_uvs) {
+			uv.append(tex_coord_to_v2(surface_uvs[v]));
 		}
 	}
 
