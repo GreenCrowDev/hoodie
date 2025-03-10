@@ -23,6 +23,7 @@ protected:
 public:
 	PackedVector3Array get_points() const override;
 	void set_points(const PackedVector3Array &p_points) override;
+	void add_point(const Vector3 &point);
 
 	Array get_vertex_property(const String &p_name) const override;
 	void add_vertex_property(const String &p_name, const Array &p_property) override;

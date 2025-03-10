@@ -4,6 +4,7 @@
 #include <core/geo/hoodie_curve.h>
 #include <core/geo/hoodie_geo.h>
 #include <core/geo/hoodie_mesh.h>
+#include <godot_cpp/variant/plane.hpp>
 
 namespace godot::greencrow::hoodie {
 
@@ -23,6 +24,7 @@ public:
 	static PackedVector3Array calc_path_tangents(const PackedVector3Array &p_points, const bool p_loop = false);
 	static PackedFloat32Array points_curvature(const PackedVector3Array &p_points, const PackedVector3Array &p_up_vectors, const bool p_loop = false);
 	static TypedArray<PackedInt32Array> break_path(const PackedInt32Array &p_ids, const TypedArray<bool> &p_break);
+	static TypedArray<HoodieCurve> curve_offset(Ref<HoodieCurve> p_curve, const float p_delta, const Vector3 &p_normal = Vector3(0, 1, 0), const bool p_polygon = false);
 };
 
 } // namespace godot::greencrow::hoodie
