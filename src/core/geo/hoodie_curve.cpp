@@ -62,5 +62,18 @@ void HoodieCurve::init_from_curve_3d(const Ref<Curve3D> &p_curve, const bool p_l
 	baked_length = p_curve->get_baked_length();
 }
 
+Ref<HoodieGeo> HoodieCurve::duplicate() const {
+	Ref<HoodieCurve> ret;
+	ret.instantiate();
+
+	ret->set_points(PackedVector3Array(points));
+
+	for (godot::KeyValue<godot::String, godot::Array> p : properties) {
+		ret->add_vertex_property(p.key, p.value.duplicate());
+	}
+
+	return ret;
+}
+
 HoodieCurve::HoodieCurve() {
 }

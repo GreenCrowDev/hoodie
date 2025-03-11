@@ -1,5 +1,6 @@
 #include "hoodie_mesh.h"
 #include <core/enums/hoodie_enums.h>
+#include <core/operations/hoodie_ops.h>
 #include <core/utils/pmp_to_godot_converter.h>
 #include <pmp/algorithms/shapes.h>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -54,6 +55,18 @@ PackedInt32Array HoodieMesh::get_vertices_id() const {
 		ret.append(v.idx());
 	}
 	return ret;
+}
+
+void HoodieMesh::transform_mesh(const Vector3 &p_displacement, const Vector3 &p_rotation, const Vector3 &p_scale) {
+	Quaternion rot_quaternion = HoodieOps::from_euler(p_rotation);
+	Basis basis = Basis(rot_quaternion, p_scale);
+	Transform3D transform = Transform3D(basis, p_displacement);
+
+	pmp::VertexProperty<pmp::Point> points = mesh->get_vertex_property<pmp::Point>("v:point");
+	for (pmp::Vertex v : mesh->vertices()) {
+		Vector3 trans_pos = transform.xform(PMPToGodotConverter::point_to_v3(points[v]));
+		points[v] = PMPToGodotConverter::v3_to_point(trans_pos);
+	}
 }
 
 Array HoodieMesh::get_vertex_property(const String &p_name) const {
@@ -202,6 +215,19 @@ void HoodieMesh::init_plane(int p_resolution) {
 
 Array HoodieMesh::to_array_mesh() const {
 	return PMPToGodotConverter::surface_to_array_mesh(*mesh);
+}
+
+void HoodieMesh::_assign_mesh(const pmp::SurfaceMesh &p_mesh) {
+	mesh = std::make_unique<pmp::SurfaceMesh>(p_mesh);
+}
+
+Ref<HoodieGeo> HoodieMesh::duplicate() const {
+	Ref<HoodieMesh> ret;
+	ret.instantiate();
+
+	ret->_assign_mesh(*mesh);
+
+	return ret;
 }
 
 HoodieMesh::HoodieMesh() : mesh(std::make_unique<pmp::SurfaceMesh>()) {

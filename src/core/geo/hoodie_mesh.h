@@ -23,6 +23,7 @@ public:
 	void set_points(const PackedVector3Array &p_points) override;
 
 	PackedInt32Array get_vertices_id() const;
+	void transform_mesh(const Vector3 &p_displacement, const Vector3 &p_rotation, const Vector3 &p_scale);
 
 	Array get_vertex_property(const String &p_name) const override;
 	void add_vertex_property(const String &p_name, const Array &p_property) override;
@@ -35,6 +36,9 @@ public:
 	void init_plane(int p_resolution = 4);
 
 	Array to_array_mesh() const;
+
+	void _assign_mesh(const pmp::SurfaceMesh &p_mesh);
+	Ref<HoodieGeo> duplicate() const override;
 
 	HoodieMesh();
 };

@@ -1,5 +1,6 @@
 #include "hoodie_ops.h"
 #include <godot_cpp/classes/geometry2d.hpp>
+#include <godot_cpp/classes/geometry3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
 
 using namespace godot;
@@ -13,6 +14,8 @@ void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("break_path", "ids", "filter"), &HoodieOps::break_path);
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_offset", "curve", "delta", "normal", "polygon"), &HoodieOps::curve_offset, DEFVAL(Vector3(0, 1, 0)), DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("equidistant_curve_sampling", "curve", "distance"), &HoodieOps::equidistant_curve_sampling);
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("copy_mesh", "mesh", "displacement", "rotation", "scale"), &HoodieOps::copy_mesh);
 }
 
 PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values, const int p_severity, const bool p_loop) {
@@ -42,6 +45,25 @@ PackedFloat32Array HoodieOps::noise_reduction(const PackedFloat32Array &p_values
 	}
 
 	return ret;
+}
+
+Quaternion HoodieOps::from_euler(const Vector3 &p_euler) {
+	real_t half_a1 = p_euler.y * 0.5f;
+	real_t half_a2 = p_euler.x * 0.5f;
+	real_t half_a3 = p_euler.z * 0.5f;
+
+	real_t cos_a1 = Math::cos(half_a1);
+	real_t sin_a1 = Math::sin(half_a1);
+	real_t cos_a2 = Math::cos(half_a2);
+	real_t sin_a2 = Math::sin(half_a2);
+	real_t cos_a3 = Math::cos(half_a3);
+	real_t sin_a3 = Math::sin(half_a3);
+
+	return Quaternion(
+			sin_a1 * cos_a2 * sin_a3 + cos_a1 * sin_a2 * cos_a3,
+			sin_a1 * cos_a2 * cos_a3 - cos_a1 * sin_a2 * sin_a3,
+			-sin_a1 * sin_a2 * cos_a3 + cos_a1 * cos_a2 * sin_a3,
+			sin_a1 * sin_a2 * sin_a3 + cos_a1 * cos_a2 * cos_a3);
 }
 
 Ref<HoodieMesh> HoodieOps::curve_sweep(const Ref<HoodieCurve> p_curve, const Ref<HoodieCurve> p_profile, const bool p_loop, const bool p_u_dist, const bool p_v_dist) {
@@ -379,6 +401,76 @@ TypedArray<HoodieCurve> HoodieOps::curve_offset(Ref<HoodieCurve> p_curve, const 
 		hc->set_points(v3);
 		ret.append(hc);
 	}
+
+	return ret;
+}
+
+Ref<HoodieCurve> HoodieOps::equidistant_curve_sampling(Ref<HoodieCurve> p_curve, const float p_distance) {
+	const float distance = Math::max(p_distance, 0.01f);
+
+	const PackedVector3Array in_pts = p_curve->get_points();
+
+	if (in_pts.size() < 2) {
+		return Ref<HoodieCurve>();
+	}
+
+	PackedVector3Array sampled_pts;
+	Geometry3D *geo = Geometry3D::get_singleton();
+
+	// Add the starting point.
+	sampled_pts.push_back(in_pts[0]);
+
+	Vector3 prev_found_pt = in_pts[0];
+	PackedVector3Array intersections;
+
+	int i = 0;
+	do {
+		if ((in_pts[i] - prev_found_pt).length() > distance) {
+			i--;
+		}
+
+		const int blocked_i = i;
+
+		do {
+			intersections.clear();
+
+			if (i + 1 > in_pts.size() - 1) {
+				break;
+			}
+
+			Vector3 a = (in_pts[i] - prev_found_pt).length() > distance ? prev_found_pt : in_pts[i];
+			Vector3 b = in_pts[i + 1];
+
+			float dist = (b - a).length();
+
+			// The order of the points of the segment is important.
+			intersections = geo->segment_intersects_sphere(b, a, prev_found_pt, distance);
+
+			i++;
+		} while (intersections.size() == 0);
+
+		if (intersections.size() == 0) {
+			break;
+		}
+
+		Vector3 found_point = intersections[0];
+		sampled_pts.push_back(found_point);
+
+		prev_found_pt = found_point;
+
+	} while (i < in_pts.size() - 1 || (in_pts[i] - prev_found_pt).length() > distance);
+
+	Ref<HoodieCurve> ret;
+	ret.instantiate();
+	ret->set_points(sampled_pts);
+	return ret;
+}
+
+Ref<HoodieMesh> HoodieOps::copy_mesh(Ref<HoodieMesh> p_mesh, const Vector3 &p_position, const Vector3 &p_rotation, const Vector3 &p_scale) {
+	Ref<HoodieMesh> ret;
+	ret = p_mesh->duplicate();
+
+	ret->transform_mesh(p_position, p_rotation, p_scale);
 
 	return ret;
 }

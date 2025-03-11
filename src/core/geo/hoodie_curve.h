@@ -31,6 +31,8 @@ public:
 
 	void init_from_curve_3d(const Ref<Curve3D> &p_curve, const bool p_loop = false);
 
+	Ref<HoodieGeo> duplicate() const override;
+
 	HoodieCurve();
 };
 

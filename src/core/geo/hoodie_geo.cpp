@@ -8,6 +8,7 @@ using namespace godot;
 using namespace greencrow::hoodie;
 
 void HoodieGeo::_bind_methods() {
+	ClassDB::bind_method(D_METHOD("duplicate"), &HoodieGeo::duplicate);
 }
 
 PackedVector3Array HoodieGeo::get_points() const {
@@ -26,6 +27,10 @@ void HoodieGeo::add_vertex_property(const String &p_name, const Array &p_propert
 
 bool HoodieGeo::has_vertex_property(const String &p_name) const {
 	return false;
+}
+
+Ref<HoodieGeo> HoodieGeo::duplicate() const {
+	return Ref<HoodieGeo>();
 }
 
 HoodieGeo::HoodieGeo() {
