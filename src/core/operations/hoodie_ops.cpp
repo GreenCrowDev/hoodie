@@ -9,6 +9,7 @@ using namespace greencrow::hoodie;
 void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("noise_reduction", "values", "severity", "loop"), &HoodieOps::noise_reduction, DEFVAL(4), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep", "curve", "profile", "loop", "u_dist", "v_dist"), &HoodieOps::curve_sweep, DEFVAL(false), DEFVAL(false), DEFVAL(false));
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_sweep_convex_collision_points", "curve", "profile", "loop"), &HoodieOps::curve_sweep_convex_collision_points, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("progressive_path_distances", "points"), &HoodieOps::progressive_path_distances);
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("calc_path_tangents", "points", "loop"), &HoodieOps::calc_path_tangents, DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("points_curvature", "points", "up_vectors", "loop"), &HoodieOps::points_curvature, DEFVAL(false));
@@ -209,6 +210,134 @@ Ref<HoodieMesh> HoodieOps::curve_sweep(const Ref<HoodieCurve> p_curve, const Ref
 	r_hm->set_faces(out_faces);
 
 	return r_hm;
+}
+
+TypedArray<PackedVector3Array> HoodieOps::curve_sweep_convex_collision_points(Ref<HoodieCurve> p_curve, Ref<HoodieCurve> p_profile, const bool p_loop) {
+	if (p_curve.is_null() || p_profile.is_null()) {
+		return Ref<HoodieGeo>();
+	}
+
+	const int shape_size = p_profile->get_points().size();
+	const int shape_verts_size = shape_size;
+	const int path_size = p_curve->get_points().size();
+	const int total_verts = shape_verts_size * path_size;
+	const int total_indices = 2 * 3 * (path_size - 1) * (shape_verts_size - 1);
+
+	if (path_size <= 1) {
+		UtilityFunctions::push_warning("Path has not enough points (needs at least 2).");
+		return Ref<HoodieGeo>();
+	}
+
+	if (shape_size <= 1) {
+		UtilityFunctions::push_warning("Shape has not enough points (needs at least 2).");
+		return Ref<HoodieGeo>();
+	}
+
+	PackedVector3Array vertices;
+	PackedVector3Array normals;
+	PackedFloat32Array tangents;
+	PackedVector2Array uvs;
+	PackedInt32Array indices;
+
+	vertices.resize(total_verts);
+	normals.resize(total_verts);
+	tangents.resize(total_verts * 4);
+	uvs.resize(total_verts);
+	indices.resize(total_indices);
+
+	PackedVector3Array curve_pos = p_curve->get_points();
+	PackedVector3Array profile_pos = p_profile->get_points();
+
+	PackedVector3Array curve_tan;
+	PackedVector3Array curve_nor;
+	PackedFloat32Array curve_tilt;
+	PackedFloat32Array curve_weight;
+
+	if (p_curve->has_vertex_property("T")) {
+		curve_tan = p_curve->get_vertex_property("T");
+	} else {
+		curve_tan = calc_path_tangents(curve_pos, p_loop);
+	}
+
+	if (p_curve->has_vertex_property("N")) {
+		curve_nor = p_curve->get_vertex_property("N");
+	} else {
+		curve_nor.resize(path_size);
+		curve_nor.fill(Vector3(0.0, 1.0, 0.0));
+	}
+
+	if (p_curve->has_vertex_property("Tilt")) {
+		curve_tilt = p_curve->get_vertex_property("Tilt");
+	} else {
+		curve_tilt.resize(path_size);
+		curve_tilt.fill(0.0);
+	}
+
+	if (p_curve.ptr()->has_vertex_property("Weight")) {
+		curve_weight = p_curve->get_vertex_property("Weight");
+	} else {
+		curve_weight.resize(path_size);
+		curve_weight.fill(1.0);
+	}
+
+	float shape_length = 0;
+	{
+		Vector3 prev_pt = profile_pos[0];
+		for (int j = 1; j < shape_verts_size; j++) {
+			Vector3 pt = profile_pos[j % shape_size];
+			shape_length += (pt - prev_pt).length();
+			prev_pt = pt;
+		}
+	}
+
+	TypedArray<PackedVector3Array> ret;
+
+	const PackedVector3Array in_points = p_curve->get_points();
+
+	// Calculate path progressive distance for UV U purpose.
+	const PackedFloat32Array u_distances = progressive_path_distances(in_points);
+	const PackedFloat32Array v_distances = progressive_path_distances(profile_pos);
+
+	// Extrusion: each quad is a primitive.
+	for (int j = 0; j < in_points.size() - 1; j++) {
+		// Construct frame with vectors taken from the Curve3D and tilt.
+		Transform3D frame;
+
+		frame = Transform3D(-curve_tan[j].cross(curve_nor[j]).normalized(), curve_nor[j], curve_tan[j], curve_pos[j]);
+		frame.rotate_basis(frame.basis.get_column(2), curve_tilt[j]);
+
+		// Populate arrays.
+		for (int s = 0; s < shape_verts_size; s++) {
+			int index = j * shape_verts_size + s;
+			vertices[index] = frame.xform(profile_pos[s] * curve_weight[j]);
+		}
+	}
+
+	for (int j = 0; j < in_points.size() - 2; j++) {
+		PackedVector3Array pts;
+		for (int s = 0; s < shape_verts_size; s++) {
+			int index = j * shape_verts_size + s;
+			int index_2 = (j + 1) * shape_verts_size + s;
+			pts.append(vertices[index]);
+			pts.append(vertices[index_2]);
+		}
+		ret.append(pts);
+	}
+
+	{
+		// Gen last convex shape.
+		int j = in_points.size() - 2;
+		PackedVector3Array pts;
+		for (int s = 0; s < shape_verts_size; s++) {
+			int index = j * shape_verts_size + s;
+			int index_2 = s;
+			pts.append(vertices[index]);
+			pts.append(vertices[index_2]);
+		}
+		ret.append(pts);
+	}
+
+	return ret;
 }
 
 PackedFloat32Array HoodieOps::progressive_path_distances(const PackedVector3Array &p_points) {
