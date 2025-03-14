@@ -299,7 +299,7 @@ TypedArray<PackedVector3Array> HoodieOps::curve_sweep_convex_collision_points(Re
 	const PackedFloat32Array v_distances = progressive_path_distances(profile_pos);
 
 	// Extrusion: each quad is a primitive.
-	for (int j = 0; j < in_points.size() - 1; j++) {
+	for (int j = 0; j < in_points.size(); j++) {
 		// Construct frame with vectors taken from the Curve3D and tilt.
 		Transform3D frame;
 
@@ -313,24 +313,11 @@ TypedArray<PackedVector3Array> HoodieOps::curve_sweep_convex_collision_points(Re
 		}
 	}
 
-	for (int j = 0; j < in_points.size() - 2; j++) {
+	for (int j = 0; j < in_points.size() - 1; j++) {
 		PackedVector3Array pts;
 		for (int s = 0; s < shape_verts_size; s++) {
 			int index = j * shape_verts_size + s;
 			int index_2 = (j + 1) * shape_verts_size + s;
-			pts.append(vertices[index]);
-			pts.append(vertices[index_2]);
-		}
-		ret.append(pts);
-	}
-
-	{
-		// Gen last convex shape.
-		int j = in_points.size() - 2;
-		PackedVector3Array pts;
-		for (int s = 0; s < shape_verts_size; s++) {
-			int index = j * shape_verts_size + s;
-			int index_2 = s;
 			pts.append(vertices[index]);
 			pts.append(vertices[index_2]);
 		}
