@@ -138,3 +138,65 @@ Array PMPToGodotConverter::surface_to_array_mesh(const pmp::SurfaceMesh &p_surfa
 
 	return mesh;
 }
+
+Array PMPToGodotConverter::surfaces_to_array_mesh(const std::vector<pmp::SurfaceMesh> &p_surface_meshes) {
+	Array ret;
+	ret.resize(ArrayMesh::ARRAY_MAX);
+
+	for (pmp::SurfaceMesh m : p_surface_meshes) {
+		Array am = surface_to_array_mesh(m);
+
+		PackedVector3Array vertices = ret[ArrayMesh::ARRAY_VERTEX];
+		PackedVector3Array normals = ret[ArrayMesh::ARRAY_NORMAL];
+		PackedFloat32Array tangents = ret[ArrayMesh::ARRAY_TANGENT];
+		PackedColorArray colors = ret[ArrayMesh::ARRAY_COLOR];
+		PackedVector2Array uv = ret[ArrayMesh::ARRAY_TEX_UV];
+		PackedVector2Array uv2 = ret[ArrayMesh::ARRAY_TEX_UV2];
+		PackedByteArray custom0 = ret[ArrayMesh::ARRAY_CUSTOM0];
+		PackedByteArray custom1 = ret[ArrayMesh::ARRAY_CUSTOM1];
+		PackedByteArray custom2 = ret[ArrayMesh::ARRAY_CUSTOM2];
+		PackedByteArray custom3 = ret[ArrayMesh::ARRAY_CUSTOM3];
+		PackedInt32Array bones = ret[ArrayMesh::ARRAY_BONES];
+		PackedFloat64Array weights = ret[ArrayMesh::ARRAY_WEIGHTS];
+		PackedInt32Array indices = ret[ArrayMesh::ARRAY_INDEX];
+
+		const int v_size = vertices.size();
+
+		vertices.append_array(am[ArrayMesh::ARRAY_VERTEX]);
+		normals.append_array(am[ArrayMesh::ARRAY_NORMAL]);
+		tangents.append_array(am[ArrayMesh::ARRAY_TANGENT]);
+		colors.append_array(am[ArrayMesh::ARRAY_COLOR]);
+		uv.append_array(am[ArrayMesh::ARRAY_TEX_UV]);
+		uv2.append_array(am[ArrayMesh::ARRAY_TEX_UV2]);
+		custom0.append_array(am[ArrayMesh::ARRAY_VERTEX]);
+		custom1.append_array(am[ArrayMesh::ARRAY_VERTEX]);
+		custom2.append_array(am[ArrayMesh::ARRAY_VERTEX]);
+		custom3.append_array(am[ArrayMesh::ARRAY_VERTEX]);
+		bones.append_array(am[ArrayMesh::ARRAY_BONES]);
+		weights.append_array(am[ArrayMesh::ARRAY_WEIGHTS]);
+
+		PackedInt32Array old_ids = am[ArrayMesh::ARRAY_INDEX];
+		PackedInt32Array new_ids;
+		new_ids.resize(old_ids.size());
+		for (int i = 0; i < old_ids.size(); i++) {
+			new_ids[i] = old_ids[i] + v_size;
+		}
+		indices.append_array(new_ids);
+
+		ret[ArrayMesh::ARRAY_VERTEX] = vertices;
+		ret[ArrayMesh::ARRAY_NORMAL] = normals;
+		ret[ArrayMesh::ARRAY_TANGENT] = tangents;
+		ret[ArrayMesh::ARRAY_COLOR] = colors;
+		ret[ArrayMesh::ARRAY_TEX_UV] = uv;
+		ret[ArrayMesh::ARRAY_TEX_UV2] = uv2;
+		// ret[ArrayMesh::ARRAY_CUSTOM0] = custom0;
+		// ret[ArrayMesh::ARRAY_CUSTOM1] = custom1;
+		// ret[ArrayMesh::ARRAY_CUSTOM2] = custom2;
+		// ret[ArrayMesh::ARRAY_CUSTOM3] = custom3;
+		ret[ArrayMesh::ARRAY_BONES] = bones;
+		ret[ArrayMesh::ARRAY_WEIGHTS] = weights;
+		ret[ArrayMesh::ARRAY_INDEX] = indices;
+	}
+
+	return ret;
+}

@@ -217,6 +217,10 @@ Array HoodieMesh::to_array_mesh() const {
 	return PMPToGodotConverter::surface_to_array_mesh(*mesh);
 }
 
+pmp::SurfaceMesh *HoodieMesh::_get_mesh() const {
+	return mesh.get();
+}
+
 void HoodieMesh::_assign_mesh(const pmp::SurfaceMesh &p_mesh) {
 	mesh = std::make_unique<pmp::SurfaceMesh>(p_mesh);
 }

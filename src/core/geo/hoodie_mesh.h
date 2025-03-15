@@ -37,6 +37,7 @@ public:
 
 	Array to_array_mesh() const;
 
+	pmp::SurfaceMesh *_get_mesh() const;
 	void _assign_mesh(const pmp::SurfaceMesh &p_mesh);
 	Ref<HoodieGeo> duplicate() const override;
 

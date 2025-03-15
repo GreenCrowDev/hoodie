@@ -32,6 +32,9 @@ public:
 	static Ref<HoodieCurve> equidistant_curve_sampling(Ref<HoodieCurve> p_curve, const float p_distance);
 
 	// Mesh.
+	static Array surfaces_to_mesh(const TypedArray<HoodieMesh> &p_meshes);
+
+	// HoodieMesh.
 	static Ref<HoodieMesh> copy_mesh(Ref<HoodieMesh> p_mesh, const Vector3 &p_position, const Vector3 &p_rotation, const Vector3 &p_scale);
 };
 

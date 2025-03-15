@@ -22,6 +22,7 @@ public:
 	static pmp::Point col_to_point(const Color &p_color);
 
 	static Array surface_to_array_mesh(const pmp::SurfaceMesh &p_surface_mesh);
+	static Array surfaces_to_array_mesh(const std::vector<pmp::SurfaceMesh> &p_surface_meshes);
 };
 
 } // namespace godot::greencrow::hoodie

@@ -1,4 +1,5 @@
 #include "hoodie_ops.h"
+#include <core/utils/pmp_to_godot_converter.h>
 #include <godot_cpp/classes/geometry2d.hpp>
 #include <godot_cpp/classes/geometry3d.hpp>
 #include <godot_cpp/variant/utility_functions.hpp>
@@ -16,6 +17,7 @@ void HoodieOps::_bind_methods() {
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("break_path", "ids", "filter"), &HoodieOps::break_path);
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("curve_offset", "curve", "delta", "normal", "polygon"), &HoodieOps::curve_offset, DEFVAL(Vector3(0, 1, 0)), DEFVAL(false));
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("equidistant_curve_sampling", "curve", "distance"), &HoodieOps::equidistant_curve_sampling);
+	ClassDB::bind_static_method("HoodieOps", D_METHOD("surfaces_to_mesh", "meshes"), &HoodieOps::surfaces_to_mesh);
 	ClassDB::bind_static_method("HoodieOps", D_METHOD("copy_mesh", "mesh", "displacement", "rotation", "scale"), &HoodieOps::copy_mesh);
 }
 
@@ -580,6 +582,15 @@ Ref<HoodieCurve> HoodieOps::equidistant_curve_sampling(Ref<HoodieCurve> p_curve,
 	ret.instantiate();
 	ret->set_points(sampled_pts);
 	return ret;
+}
+
+Array HoodieOps::surfaces_to_mesh(const TypedArray<HoodieMesh> &p_meshes) {
+	std::vector<pmp::SurfaceMesh> surfaces;
+	for (int i = 0; i < p_meshes.size(); i++) {
+		Ref<HoodieMesh> hm = p_meshes[i];
+		surfaces.push_back(*(hm->_get_mesh()));
+	}
+	return PMPToGodotConverter::surfaces_to_array_mesh(surfaces);
 }
 
 Ref<HoodieMesh> HoodieOps::copy_mesh(Ref<HoodieMesh> p_mesh, const Vector3 &p_position, const Vector3 &p_rotation, const Vector3 &p_scale) {
